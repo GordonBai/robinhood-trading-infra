@@ -1,0 +1,8 @@
+{
+  "current_capture": {
+    "root": "/absolute/project-local/private/current-capture",
+    "public_manifest": "/absolute/project-local/public-product-sources/manifest.json",
+    "producer": "live-saved-bundle-v1",
+    "retention": 3
+  }
+}

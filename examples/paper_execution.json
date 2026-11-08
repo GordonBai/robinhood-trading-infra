@@ -1,0 +1,10 @@
+[
+  {"id":"paper-init", "kind":"init", "at":"2026-10-15T09:00:00-04:00", "synthetic":true, "capital":"500",
+   "policy":{"risk_fraction":"0.005", "max_position_fraction":"0.33", "portfolio_risk_fraction":"0.02"}},
+  {"id":"paper-submit", "kind":"submit", "at":"2026-10-15T09:40:05-04:00", "order_id":"entry-demo", "symbol":"DEMO", "entry_ceiling":"40.01", "stop":"39.20", "cost_buffer_per_share":"0.05"},
+  {"id":"paper-fill-1", "kind":"fill", "at":"2026-10-15T09:40:06-04:00", "order_id":"entry-demo", "quantity":1, "price":"40.01"},
+  {"id":"paper-protect-1", "kind":"protect", "at":"2026-10-15T09:40:07-04:00", "symbol":"DEMO", "quantity":1},
+  {"id":"paper-fill-2", "kind":"fill", "at":"2026-10-15T09:40:08-04:00", "order_id":"entry-demo", "quantity":1, "price":"40.00"},
+  {"id":"paper-protect-2", "kind":"protect", "at":"2026-10-15T09:40:09-04:00", "symbol":"DEMO", "quantity":2},
+  {"id":"paper-exit", "kind":"exit", "at":"2026-10-15T14:00:00-04:00", "symbol":"DEMO", "quantity":2, "price":"44.00"}
+]

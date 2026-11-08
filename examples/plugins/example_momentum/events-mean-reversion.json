@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "max_quote_age_seconds": 15,
+  "events": [
+    {
+      "id": "q1",
+      "at": "2026-10-16T14:00:00+00:00",
+      "kind": "quote",
+      "data": {
+        "symbol": "DEMO",
+        "bid": "40.00",
+        "ask": "40.01"
+      }
+    },
+    {
+      "id": "q2",
+      "at": "2026-10-16T14:00:10+00:00",
+      "kind": "quote",
+      "data": {
+        "symbol": "DEMO",
+        "bid": "40.20",
+        "ask": "40.21"
+      }
+    },
+    {
+      "id": "q3",
+      "at": "2026-10-16T14:00:20+00:00",
+      "kind": "quote",
+      "data": {
+        "symbol": "DEMO",
+        "bid": "41.00",
+        "ask": "41.01"
+      }
+    },
+    {
+      "id": "q4",
+      "at": "2026-10-16T14:00:30+00:00",
+      "kind": "quote",
+      "data": {
+        "symbol": "DEMO",
+        "bid": "41.20",
+        "ask": "41.21"
+      }
+    },
+    {
+      "id": "q5",
+      "at": "2026-10-16T14:00:40+00:00",
+      "kind": "quote",
+      "data": {
+        "symbol": "DEMO",
+        "bid": "41.30",
+        "ask": "41.31"
+      }
+    }
+  ]
+}

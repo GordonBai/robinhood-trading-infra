@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading-example-momentum"
+version = "1.0.0"
+description = "Two synthetic external strategy plugins for the Martin Agentic plugin protocol"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.entry-points."trading_infra.strategies"]
+example-momentum = "trading_example_momentum:MomentumProvider"
+example-mean-reversion = "trading_example_momentum:MeanReversionProvider"

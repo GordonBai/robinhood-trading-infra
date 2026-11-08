@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source": "synthetic_historical_tool_contract_fixture",
+  "inventory_scope": "minimal synthetic/historical contract fixture for formal-authority tests; not live capability",
+  "synthetic": true,
+  "historical": true,
+  "captured_at": "2026-11-03T16:37:00Z",
+  "formal_api_calls": 0,
+  "tools": [
+    {
+      "name": "mcp__robinhood_trading__review_equity_order",
+      "base_name": "review_equity_order",
+      "description": "Simulate a stock order without placing it and return pre-trade alerts and review information for the exact order."
+    },
+    {
+      "name": "mcp__robinhood_trading__place_equity_order",
+      "base_name": "place_equity_order",
+      "description": "Place a real equity order after review_equity_order; follow review_equity_order and customer_approval_required semantics."
+    },
+    {
+      "name": "mcp__robinhood_trading__review_advanced_order",
+      "base_name": "review_advanced_order",
+      "description": "Simulate an OCO advanced order without placing it; returns pre-trade alerts including stop and take-profit validation."
+    },
+    {
+      "name": "mcp__robinhood_trading__place_advanced_order",
+      "base_name": "place_advanced_order",
+      "description": "Place an OCO advanced order with real money; includes a stop-loss leg and take-profit leg."
+    }
+  ]
+}

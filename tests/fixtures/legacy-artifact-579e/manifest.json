@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "scope": "local_source_and_test_inputs_not_deployment_authority",
+  "source_fingerprint": "579e5611c08bac8b9d80ab359bc9983fa9a928c100d83fdcf4545f79121bfffa",
+  "input_set_sha256": "4289b51f69a0d9f5373f8810d03b03ccffc0e1ed4fdb2a12a0f18ab2bbc0679b",
+  "archive_sha256": "89fb1d9a4f12ef45575c696b65259876033c36549bc8d541ad8c6e29a26aec28",
+  "file_count": 343,
+  "tests_executed_by_builder": false,
+  "production_ready": false,
+  "independent_immutable_custody": false,
+  "sanitized_legacy_artifact_manifest": true,
+  "origin": "runtime/releases/005r2-579e5611c08b-pinned/manifest.json",
+  "note": "Sanitized metadata only; no runtime database, receipts, credentials, files inventory or executable artifact copied."
+}

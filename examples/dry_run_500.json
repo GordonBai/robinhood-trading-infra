@@ -1,0 +1,19 @@
+{
+  "mode": "paper",
+  "synthetic": true,
+  "equity": "500",
+  "available_buying_power": "500",
+  "risk_fraction": "0.005",
+  "max_position_fraction": "0.33",
+  "remaining_portfolio_risk": "2.50",
+  "entry": "40",
+  "stop": "39.20",
+  "cost_buffer_per_share": "0.05",
+  "exits": [
+    {"name": "stop_at_assumed_price", "price": "39.20"},
+    {"name": "price_plus_3R_before_cost", "price": "42.40"},
+    {"name": "price_plus_5R_before_cost", "price": "44.00"},
+    {"name": "price_plus_10R_before_cost", "price": "48.00"},
+    {"name": "gap_stress_not_a_maximum_loss", "price": "36.00"}
+  ]
+}

@@ -1,0 +1,3 @@
+[
+  {"tool": "get_equity_quotes", "arguments": {"symbols": ["AAPL", "HOOD", "NVDA", "AMD", "TSLA", "META", "PLTR", "SOFI", "IONQ", "RKLB"]}}
+]

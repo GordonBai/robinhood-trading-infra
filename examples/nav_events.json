@@ -1,0 +1,8 @@
+[
+  {"id":"demo-init", "kind":"init", "at":"2026-10-15T09:30:00-04:00", "amount":"500"},
+  {"id":"demo-high", "kind":"mark", "at":"2026-10-15T10:00:00-04:00", "amount":"600"},
+  {"id":"demo-down", "kind":"mark", "at":"2026-10-15T11:00:00-04:00", "amount":"480"},
+  {"id":"demo-deposit", "kind":"flow", "at":"2026-10-15T11:00:00-04:00", "amount":"120"},
+  {"id":"demo-halt", "kind":"mark", "at":"2026-10-15T12:00:00-04:00", "amount":"525"},
+  {"id":"demo-rebound", "kind":"mark", "at":"2026-10-15T13:00:00-04:00", "amount":"600"}
+]

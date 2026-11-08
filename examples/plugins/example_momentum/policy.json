@@ -1,0 +1,18 @@
+{
+  "session_date": "2026-10-16",
+  "timezone": "America/New_York",
+  "account_suffix": "0000",
+  "account_capital_usd": "500",
+  "max_planned_loss_per_trade_usd": "2.50",
+  "max_position_notional_usd": "100",
+  "stop_new_entries_at_daily_equity_loss_usd": "10",
+  "project_max_drawdown_fraction": "0.30",
+  "overnight_allowed": false,
+  "leverage_allowed": false,
+  "live_enabled": false,
+  "scheduled": false,
+  "strategy_instances": [
+    {"instance_id": "example-momentum", "plugin": "example-momentum",
+     "config": {"lookback": 3, "threshold_bps": 0}, "mode": "shadow"}
+  ]
+}

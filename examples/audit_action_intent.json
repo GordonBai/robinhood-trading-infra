@@ -1,0 +1,27 @@
+{
+  "event_id": "demo-entry-intent-1",
+  "occurred_at": "2026-10-16T14:00:00Z",
+  "event_type": "AGENT_ACTION_INTENT",
+  "actor": "agent",
+  "synthetic": true,
+  "account": "••••0000",
+  "intent_id": "demo-intent-1",
+  "ref_id": "a8b667ed-df57-471d-8c1b-510ecdf04826",
+  "trade_id": "demo-trade-1",
+  "symbol": "DEMO",
+  "side": "buy",
+  "quantity": "1",
+  "price": "40",
+  "stop": "39",
+  "take_profit": "43",
+  "reason": "SYNTHETIC_AUDIT_EXAMPLE_ONLY",
+  "details": {
+    "action": "entry",
+    "parameters": {
+      "order_type": "limit",
+      "quantity": "1",
+      "limit_price": "40"
+    },
+    "simulation_only": true
+  }
+}

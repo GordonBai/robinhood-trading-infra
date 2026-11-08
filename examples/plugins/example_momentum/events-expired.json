@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "max_quote_age_seconds": 15,
+  "events": [
+    {"id": "q1", "at": "2026-10-16T14:00:00+00:00", "kind": "quote", "data": {"symbol": "DEMO", "bid": "40.00", "ask": "40.01"}},
+    {"id": "q2", "at": "2026-10-16T14:00:10+00:00", "kind": "quote", "data": {"symbol": "DEMO", "bid": "40.50", "ask": "40.51"}},
+    {"id": "q3", "at": "2026-10-16T14:00:31+00:00", "kind": "quote", "data": {"symbol": "DEMO", "bid": "40.00", "ask": "40.01"}}
+  ]
+}

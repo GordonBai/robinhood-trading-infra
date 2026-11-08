@@ -1,0 +1,46 @@
+{
+  "mode": "paper",
+  "synthetic": true,
+  "setup": {
+    "symbol": "DEMO",
+    "known_at": "2026-10-15T09:25:00-04:00",
+    "expires_at": "2026-10-15T11:00:00-04:00",
+    "support_low": "39.50",
+    "support_high": "39.60",
+    "support_categories": ["ema", "avwap", "swing"],
+    "tick": "0.01",
+    "features": {
+      "known_at": "2026-10-15T09:00:00-04:00",
+      "ema9": "39.60", "ema21": "39.55", "ema50": "38",
+      "rs_percentile": "0.95", "adr20_fraction": "0.06", "dollar_volume20": "100000000"
+    }
+  },
+  "events": [
+    {
+      "kind": "bar", "at": "2026-10-15T09:35:02-04:00",
+      "data": {
+        "symbol": "DEMO", "begins_at": "2026-10-15T09:30:00-04:00",
+        "available_at": "2026-10-15T09:35:02-04:00", "observed_at": "2026-10-15T09:35:02-04:00",
+        "interval": "5minute", "bounds": "regular", "adjustment": "split",
+        "open": "39.70", "high": "39.80", "low": "39.21", "close": "39.40", "volume": 10000
+      }
+    },
+    {
+      "kind": "bar", "at": "2026-10-15T09:40:02-04:00",
+      "data": {
+        "symbol": "DEMO", "begins_at": "2026-10-15T09:35:00-04:00",
+        "available_at": "2026-10-15T09:40:02-04:00", "observed_at": "2026-10-15T09:40:02-04:00",
+        "interval": "5minute", "bounds": "regular", "adjustment": "split",
+        "open": "39.40", "high": "39.99", "low": "39.30", "close": "39.80", "volume": 12000
+      }
+    },
+    {
+      "kind": "quote", "at": "2026-10-15T09:40:05-04:00",
+      "data": {
+        "symbol": "DEMO", "observed_at": "2026-10-15T09:40:05-04:00",
+        "bid_at": "2026-10-15T09:40:05-04:00", "ask_at": "2026-10-15T09:40:05-04:00",
+        "bid": "40.00", "ask": "40.01"
+      }
+    }
+  ]
+}

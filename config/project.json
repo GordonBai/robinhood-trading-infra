@@ -1,0 +1,12 @@
+{
+  "mode": "paper",
+  "initial_test_capital_usd": "500",
+  "max_drawdown_fraction": "0.30",
+  "halt_is_latched": true,
+  "risk_fraction": null,
+  "max_position_fraction": null,
+  "daily_loss_limit": null,
+  "weekly_loss_limit": null,
+  "live_enabled": false,
+  "note": "Project policy record. I1 CLI requires explicit scenario inputs; this file does not authorize trading."
+}

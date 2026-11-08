@@ -1,0 +1,124 @@
+[
+  {
+    "kind": "init",
+    "id": "init",
+    "at": "2026-10-16T14:00:00+00:00",
+    "account_ref": "agentic-rehearsal",
+    "mode": "protection_rehearsal",
+    "synthetic": true,
+    "max_unprotected_seconds": 10,
+    "max_broker_age_seconds": 30
+  },
+  {
+    "kind": "fill",
+    "id": "fill",
+    "at": "2026-10-16T14:00:01+00:00",
+    "account_ref": "agentic-rehearsal",
+    "execution_id": "buy-1",
+    "symbol": "DEMO",
+    "side": "buy",
+    "quantity": 2,
+    "price": "40",
+    "initial_stop": "39"
+  },
+  {
+    "kind": "position_check",
+    "id": "position_check",
+    "at": "2026-10-16T14:00:02+00:00",
+    "account_ref": "agentic-rehearsal",
+    "positions": {
+      "DEMO": 2
+    }
+  },
+  {
+    "kind": "protect_intent",
+    "id": "protect_intent",
+    "at": "2026-10-16T14:00:03+00:00",
+    "account_ref": "agentic-rehearsal",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c",
+    "symbol": "DEMO",
+    "quantity": 2,
+    "stop": "39",
+    "valid_until": "2026-10-16T20:00:00+00:00"
+  },
+  {
+    "kind": "approve",
+    "id": "approve",
+    "at": "2026-10-16T14:00:04+00:00",
+    "account_ref": "agentic-rehearsal",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c",
+    "approved": true
+  },
+  {
+    "kind": "submit",
+    "id": "submit",
+    "at": "2026-10-16T14:00:05+00:00",
+    "account_ref": "agentic-rehearsal",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c"
+  },
+  {
+    "kind": "broker_order",
+    "id": "ack",
+    "at": "2026-10-16T14:00:06+00:00",
+    "account_ref": "agentic-rehearsal",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c",
+    "status": "ACTIVE",
+    "broker_id": "broker-stop-1",
+    "filled_quantity": 0,
+    "quantity": 2,
+    "stop": "39",
+    "symbol": "DEMO",
+    "side": "sell",
+    "order_type": "stop_market",
+    "market_hours": "regular_hours",
+    "valid_until": "2026-10-16T20:00:00+00:00"
+  },
+  {
+    "kind": "fill",
+    "id": "partial-stop-fill",
+    "at": "2026-10-16T14:00:07+00:00",
+    "account_ref": "agentic-rehearsal",
+    "execution_id": "sell-1",
+    "symbol": "DEMO",
+    "side": "sell",
+    "quantity": 1,
+    "price": "38.97",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c"
+  },
+  {
+    "kind": "broker_order",
+    "id": "remaining-stop-ack",
+    "at": "2026-10-16T14:00:08+00:00",
+    "account_ref": "agentic-rehearsal",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c",
+    "status": "ACTIVE",
+    "broker_id": "broker-stop-1",
+    "filled_quantity": 1,
+    "quantity": 2,
+    "stop": "39",
+    "symbol": "DEMO",
+    "side": "sell",
+    "order_type": "stop_market",
+    "market_hours": "regular_hours",
+    "valid_until": "2026-10-16T20:00:00+00:00"
+  },
+  {
+    "kind": "fill",
+    "id": "final-stop-fill",
+    "at": "2026-10-16T14:00:09+00:00",
+    "account_ref": "agentic-rehearsal",
+    "execution_id": "sell-2",
+    "symbol": "DEMO",
+    "side": "sell",
+    "quantity": 1,
+    "price": "38.95",
+    "intent_id": "143272e0-5be5-42a0-97fb-5d8fae747b3c"
+  },
+  {
+    "kind": "position_check",
+    "id": "flat-position-check",
+    "at": "2026-10-16T14:00:10+00:00",
+    "account_ref": "agentic-rehearsal",
+    "positions": {}
+  }
+]

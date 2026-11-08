@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading-test-probe-plugins"
+version = "1.0.0"
+description = "Synthetic plugin fixtures for bounded probe and backtest tests"
+requires-python = ">=3.11"
+
+[project.entry-points."trading_infra.strategies"]
+test-stop-only = "trading_test_probe_plugins.provider:StopOnlyProvider"
+test-nondeterministic = "trading_test_probe_plugins.provider:NondeterministicProvider"
+test-probe-slow = "trading_test_probe_plugins.provider:SlowProvider"
+test-probe-noisy = "trading_test_probe_plugins.provider:NoisyProvider"
+test-probe-leaky = "trading_test_probe_plugins.provider:LeakyProvider"
+test-actions = "trading_test_probe_plugins.provider:ActionsProvider"
+test-probe-badjson = "trading_test_probe_plugins.provider:BadJsonProvider"
+test-bars = "trading_test_probe_plugins.provider:BarsProvider"
+test-warmup = "trading_test_probe_plugins.provider:WarmupProvider"
+test-always-exit = "trading_test_probe_plugins.provider:AlwaysExitProvider"
+test-bad-action = "trading_test_probe_plugins.provider:BadActionProvider"
+
+[tool.setuptools]
+packages = ["trading_test_probe_plugins"]

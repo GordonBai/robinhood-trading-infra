@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Strategy plugin manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plugin_id",
+    "version",
+    "state_schema",
+    "config",
+    "data_requirements",
+    "capabilities",
+    "max_inflight"
+  ],
+  "properties": {
+    "plugin_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "state_schema": {
+      "type": "string"
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "integer",
+          "boolean"
+        ]
+      }
+    },
+    "data_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "max_inflight": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "plugin_identity": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

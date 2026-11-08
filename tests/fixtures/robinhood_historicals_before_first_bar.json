@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "rh_error_category": "invalid_request",
+    "rh_error_kind": "upstream_invalid_argument"
+  },
+  "content": [
+    {
+      "text": "API error 400: {\"end\":[\"end must be after start\"]}",
+      "type": "text"
+    }
+  ],
+  "isError": true
+}

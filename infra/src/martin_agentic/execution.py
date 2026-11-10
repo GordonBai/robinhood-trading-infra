@@ -90,6 +90,12 @@ class ExecutionBook:
             operation_id TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS external_broker_order_ids(order_id TEXT PRIMARY KEY,action_id TEXT NOT NULL,
             operation_id TEXT NOT NULL,account_key TEXT NOT NULL);''')
+        # The generic execution owner, not a strategy initializer, owns the
+        # capture archive schema. A fresh read-only book with no strategy must
+        # still be able to record rejected/unconsumed capture dispositions.
+        from .capture_archive import ensure_archive_schema
+        ensure_archive_schema(self.db)
+        self.db.commit()
         self.audit=AuditTrail(connection=self.db,clock=self.clock)
         if not self.db.execute('SELECT 1 FROM live_state').fetchone():
             self.db.execute('INSERT INTO live_state VALUES(1,?)',(canonical({'policy_hash':digest(policy),

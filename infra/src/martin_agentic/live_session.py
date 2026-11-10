@@ -119,6 +119,8 @@ class LiveSupervisor:
         self._strategy_pending_errors=[]
         self.strategy_process_enabled=strategy_queue is not None
         self.book=book
+        self.capture_only=(isinstance(getattr(book,'policy',None),dict)
+            and book.policy.get('capture_only') is True)
         if current_preflight is not None:
             self.book._current_preflight=current_preflight
             self.book._current_context_refresher=None
@@ -252,7 +254,26 @@ class LiveSupervisor:
         if self.strategy_queue is not None:
             return self._step_async(snapshot,events,allow_entries=allow_entries,allow_dispatch=allow_dispatch)
         quotes={};errors=[]
+        no_strategy_capture=(self.capture_only
+            and isinstance(self.signals,_NoStrategySignals))
         for event in events:
+            if no_strategy_capture:
+                # Capture-only with no strategy consumer still keeps the real
+                # event and its source in the archive, but must not invoke a
+                # strategy runtime that was never configured. "No consumer" is
+                # an expected capture disposition, not a strategy error.
+                try:
+                    record_capture_disposition(
+                        self.book,event,
+                        reason='NO_STRATEGY_CONSUMER_CAPTURE_ONLY')
+                except (ValueError,TypeError,KeyError,OSError,sqlite3.Error):
+                    errors.append({'rejected':True,
+                        'reason':'REJECTION_ARCHIVE_FAILED',
+                        'scope':'STRATEGY_INPUT'})
+                if event.get('kind')=='quote' and isinstance(event.get('data'),dict):
+                    symbol=event['data'].get('symbol')
+                    if symbol is not None:quotes[symbol]=event['data']
+                continue
             try:
                 self.signals.consume(event)
                 if event['kind']=='quote':quotes[event['data']['symbol']]=event['data']
@@ -3916,6 +3937,9 @@ class HostDeliveryDispatcher:
                                 ('intent_id', 'action_id', 'operation')}})
 
 
+MAX_OBSERVATION_WAIT_SECONDS=20.0
+
+
 def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mode='disabled',
                      output_dir='runtime/live-agent',status_file=None,clock=utc_now,
                      budget_entry_limit=20,budget_total_limit=40,entry_inhibit_file=None,
@@ -3924,9 +3948,14 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                      simulation=False,simulation_sources=None,simulation_workspace=None,
                      source_mode=None,current_preflight=None,host_wake_adapter=None,
                      host_wake_adapter_factory=None,composition=None,
-                     supervisor_class=None,cycle_observer=None):
+                     supervisor_class=None,cycle_observer=None,
+                     observation_wait_seconds=0.0):
     if type(simulation) is not bool:
         raise ValueError('SIMULATION_FLAG_INVALID')
+    if (type(observation_wait_seconds) not in (int, float)
+            or observation_wait_seconds < 0
+            or observation_wait_seconds != observation_wait_seconds):
+        raise ValueError('INVALID_OBSERVATION_WAIT')
     if source_mode is not None and source_mode not in SOURCE_MODES:
         raise ValueError('SOURCE_MODE_INVALID')
     if source_mode=='real_read_only' and agent_mode in {'supervised-host','execute'}:
@@ -3954,6 +3983,10 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
     if len(symbols)!=len(set(symbols)) or not 10<=len(symbols)<=30:
         raise ValueError('EXPLICIT_UNIQUE_10_TO_30_STOCK_POOL_REQUIRED')
     capture_only=policy.get('capture_only') is True
+    if (observation_wait_seconds and not capture_only):
+        raise ValueError('OBSERVATION_WAIT_REQUIRES_CAPTURE_ONLY')
+    if observation_wait_seconds>MAX_OBSERVATION_WAIT_SECONDS:
+        raise ValueError('OBSERVATION_WAIT_TOO_LARGE')
     if capture_only and agent_mode!='disabled':
         raise ValueError('CAPTURE_ONLY_REQUIRES_DISABLED_AGENT')
     from martin_agentic.engineering_profile import validate_profile_mode
@@ -4239,8 +4272,12 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                         'status':'FAILED',
                         'reason':getattr(exc,'code',None) or str(exc),
                         'entry_allowed':False}
+            completed_observation_cycles=0
             for cycle in (count() if until_close else range(cycles)):
                 now=clock();market=session(now.isoformat());fatal=False
+                cycle_had_observation=False
+                cycle_observation_completed=False
+                previous_consumed_account_at=last_consumed_account_at
                 next_cycle=until_close or cycle+1<cycles
                 result={'healthy':False,'cycle':cycle+1,'running':True,'pid':os.getpid(),
                     'agent_mode':agent_mode,'source_fingerprint':build,'new_entries_blocked':True,'db':str(Path(db_path).resolve()),
@@ -4278,6 +4315,14 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                         approval_ids=list(broker_approval_ids(book)))
                 broker_task.thread.join(timeout=.01)
                 broker_observation=broker_task.take()
+                if broker_observation is None and observation_wait_seconds and capture_only:
+                    # Bounded read-only runs need each configured cycle to
+                    # contain a real observation. A fresh process has no
+                    # prefetched read, so wait for this cycle's owned read
+                    # instead of spending the cycle on an empty in-flight tick.
+                    if broker_task.thread is not None:
+                        broker_task.thread.join(timeout=observation_wait_seconds)
+                    broker_observation=broker_task.take()
                 result['broker_task']=broker_task.status()
                 if broker_observation is None:
                     latest_observation_state='IN_FLIGHT'
@@ -4425,6 +4470,16 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                             # A tiny bounded scheduling grace is independent of collection duration.
                             market_task.thread.join(timeout=.01)
                             completed=market_task.take()
+                            if (completed is None and capture_only
+                                    and observation_wait_seconds):
+                                # The market result belongs to this cycle too.
+                                # Wait for the already-started bounded task
+                                # rather than recording an empty/in-flight market
+                                # observation as healthy.
+                                if market_task.thread is not None:
+                                    market_task.thread.join(
+                                        timeout=observation_wait_seconds)
+                                completed=market_task.take()
                             if completed:
                                 ok,value=completed
                                 if ok:
@@ -4556,6 +4611,26 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                             if any(error.get('reason')=='ENTRY_INHIBIT_PERSISTENCE_FAILED' for error in result['errors']):
                                 fatal=True
                                 result['stop_disposition']='ENTRY_INHIBIT_PERSISTENCE_FAILED_MANUAL_HANDOFF_REQUIRED'
+                        cycle_market_ok=bool(market_consumed_ok
+                            and market_failure is None
+                            and latest_market_state=='SUCCESS')
+                        cycle_new_broker=True
+                        if not book.simulation and previous_consumed_account_at:
+                            try:
+                                cycle_new_broker=bool(
+                                    timestamp(snapshot.get('observed_at'))
+                                    > timestamp(previous_consumed_account_at))
+                            except (TypeError, ValueError, OverflowError):
+                                cycle_new_broker=False
+                        cycle_observation_completed=bool(
+                            cycle_market_ok and cycle_new_broker
+                            and publication_ok and not result.get('errors'))
+                        result['cycle_observation_completed']=cycle_observation_completed
+                        result['cycle_market_state']=latest_market_state
+                        result['cycle_market_consumed']=market_consumed_ok
+                        result['cycle_new_broker_observation']=cycle_new_broker
+                        if cycle_observation_completed:
+                            cycle_had_observation=True
                         last_completed_observation_at=snapshot.get('observed_at')
                         last_completed_observation_healthy=(result.get('read_only_capture_healthy')
                             if capture_only else result.get('healthy'))
@@ -4582,6 +4657,8 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                             result['book_evidence_available']=False
                         result.update(reason='BROKER_OR_LIFECYCLE_UNAVAILABLE',failure=failure,
                             execution=execution,agent_called=False,attention_required=True,healthy=False)
+                if cycle_observation_completed:
+                    completed_observation_cycles+=1
                 finish_tick()
                 if cycle_observer is not None:
                     # The observer receives a detached snapshot of the cycle
@@ -4757,8 +4834,11 @@ def run_live_session(db_path,policy,*,symbols,cycles=1,poll_seconds=15,agent_mod
                     result['current_observation_reason']=current_reason
                 if not current_healthy and not close_proof:
                     result.update(healthy=False,attention_required=True)
+                result['completed_observation_cycles']=completed_observation_cycles
+                result['configured_cycles']=cycles
                 result['bounded_capture_completed']=bool(
-                    not until_close and result.get('cycle')==cycles and cleanup_ok)
+                    not until_close and result.get('cycle')==cycles and cleanup_ok
+                    and completed_observation_cycles==cycles)
                 if 'close_disposition' not in result:
                     state=book.summary().get('state',{})
                     recovery=book.recovery_status()

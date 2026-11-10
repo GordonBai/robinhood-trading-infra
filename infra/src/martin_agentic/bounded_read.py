@@ -64,7 +64,7 @@ def _kind(target):
 
 def preflight(*, policy_path, target, expected_source, protected_manifest,
               registry, cycles=MAX_CYCLES, getter_budget=MAX_GETTERS,
-              wall_seconds=MAX_WALL_SECONDS):
+              wall_seconds=MAX_WALL_SECONDS, require_current_capture=False):
     """No transport, target, auth, getter or process side effects."""
     try:
         policy_bytes = Path(policy_path).read_bytes()
@@ -79,6 +79,20 @@ def preflight(*, policy_path, target, expected_source, protected_manifest,
         raise ValueError('BOUNDED_READ_POLICY_LIVE_NOT_DISABLED')
     if policy.get('scheduled') is True:
         raise ValueError('BOUNDED_READ_POLICY_SCHEDULED')
+    if require_current_capture is not True and require_current_capture is not False:
+        raise ValueError('BOUNDED_READ_CURRENT_CAPTURE_FLAG_INVALID')
+    if require_current_capture:
+        # A real execute needs the saved-bundle bridge before the first broker
+        # getter. Validate its policy shape here, without touching the
+        # filesystem or creating a target, so a missing bridge fails preflight
+        # instead of after an auth/getter round trip.
+        from .live_capture_bridge import bridge_config, LiveCaptureBridgeError
+        try:
+            bridge_config(policy)
+        except LiveCaptureBridgeError as exc:
+            raise ValueError('BOUNDED_READ_' + str(exc)) from None
+        except (TypeError, ValueError):
+            raise ValueError('BOUNDED_READ_CURRENT_CAPTURE_INVALID') from None
     if type(cycles) is not int or not 1 <= cycles <= MAX_CYCLES:
         raise ValueError('BOUNDED_READ_CYCLES_INVALID')
     if type(getter_budget) is not int or not 1 <= getter_budget <= MAX_GETTERS:
@@ -129,6 +143,9 @@ def preflight(*, policy_path, target, expected_source, protected_manifest,
         'wall_budget_seconds': wall_seconds,
         'cleanup_reserve_seconds': min(CLEANUP_RESERVE_SECONDS, wall_seconds / 4),
         'protected': {path: _sha(path) for path in sorted(protected)},
+        'current_capture_required': require_current_capture,
+        'current_capture_configured': bool(
+            isinstance(policy.get('current_capture'), dict)),
         'transport_started': False, 'target_created': False,
         'auth_attempted': False, 'getter_calls': 0,
         'entry_authorized': False, 'production_ready': False,
@@ -280,6 +297,8 @@ def verify_completion(*, run_id, cycles, getter_budget, child, journal,
         failures.append('CHILD_SUMMARY_MISSING')
     checks['child_transport_started'] = child.get('transport_started') is True
     checks['child_completed_cycles'] = child.get('completed_cycles') == cycles
+    checks['child_completed_observations'] = (
+        child.get('completed_observation_cycles') == cycles)
     checks['bounded_capture_completed'] = (
         child.get('bounded_capture_completed') is True)
     checks['bounded_session_stopped'] = (
@@ -295,6 +314,7 @@ def verify_completion(*, run_id, cycles, getter_budget, child, journal,
     checks['cleanup_verified'] = cleanup_state == 'CLEAN'
     checks['returncode_zero'] = returncode == 0 and failure is None
     for name in ('child_transport_started', 'child_completed_cycles',
+                 'child_completed_observations',
                  'bounded_capture_completed', 'bounded_session_stopped',
                  'current_observation_healthy', 'read_only_capture_healthy',
                  'observation_recorded', 'child_getters_match_journal',
@@ -313,7 +333,8 @@ def run_bounded_read(*, policy_path, target, expected_source, protected_manifest
                          expected_source=expected_source,
                          protected_manifest=protected_manifest,
                          registry=registry, cycles=cycles,
-                         getter_budget=getter_budget, wall_seconds=wall_seconds)
+                         getter_budget=getter_budget, wall_seconds=wall_seconds,
+                         require_current_capture=execute)
     if not execute:
         return prepared
     if not isinstance(symbols, (list, tuple)) or not symbols or any(

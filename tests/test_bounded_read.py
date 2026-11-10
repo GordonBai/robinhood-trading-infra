@@ -40,7 +40,12 @@ class BoundedReadTests(TestCase):
         self.policy.write_text(json.dumps({'capture_only': True,
                                            'live_enabled': False,
                                            'scheduled': False,
-                                           'account_suffix': '0000'}))
+                                           'account_suffix': '0000',
+                                           'current_capture': {
+                                               'root': str(self.root / 'capture'),
+                                               'public_manifest': str(
+                                                   self.root / 'public-manifest.json'),
+                                               'retention': 3}}))
         protected_file = self.root / 'protected.dat'
         protected_file.write_text('synthetic-protected')
         self.protected = self.root / 'protected.json'
@@ -84,6 +89,28 @@ class BoundedReadTests(TestCase):
         self.assertEqual(value['status'], 'PREFLIGHT_OK')
         self.assertFalse(self.target.exists())
 
+    def test_execute_requires_a_current_capture_bridge_without_side_effects(self):
+        missing = self.root / 'missing-capture-policy.json'
+        missing.write_text(json.dumps({'capture_only': True,
+                                       'live_enabled': False,
+                                       'scheduled': False,
+                                       'account_suffix': '0000'}))
+        from martin_agentic.bounded_read import preflight as preflight_fn
+        public = preflight_fn(**self.args(policy_path=missing))
+        self.assertEqual(public['status'], 'PREFLIGHT_OK')
+        self.assertTrue(public['current_capture_required'] is False)
+        self.assertFalse(self.target.exists())
+        with self.assertRaisesRegex(
+                ValueError, 'BOUNDED_READ_LIVE_CAPTURE_BRIDGE_NOT_CONFIGURED'):
+            preflight_fn(**self.args(policy_path=missing,
+                                     require_current_capture=True))
+        target = self.root / 'run-missing-capture'
+        with self.assertRaisesRegex(
+                ValueError, 'BOUNDED_READ_LIVE_CAPTURE_BRIDGE_NOT_CONFIGURED'):
+            run_bounded_read(**self.args(policy_path=missing, target=target,
+                                         execute=True, symbols=['DEMO']))
+        self.assertFalse(target.exists())
+
     def test_source_drift_and_budget_are_refused(self):
         with self.assertRaisesRegex(ValueError, 'BOUNDED_READ_SOURCE_MISMATCH'):
             preflight(**self.args(expected_source='0' * 64))
@@ -115,6 +142,7 @@ class BoundedReadTests(TestCase):
         value = {'run_id': run_id, 'status': 'PASS', 'transport_started': True,
                  'getter_calls': 3, 'getter_budget': 120,
                  'configured_cycles': 3, 'completed_cycles': 3,
+                 'completed_observation_cycles': 3,
                  'bounded_capture_completed': True,
                  'bounded_session_stopped': True,
                  'current_observation_healthy': True,
@@ -199,7 +227,8 @@ class BoundedReadTests(TestCase):
         for index, summary in enumerate(
                 ({}, self._summary('x', getter_calls=0),
                  self._summary('x', completed_cycles=2,
-                               bounded_capture_completed=False))):
+                               bounded_capture_completed=False),
+                 self._summary('x', completed_observation_cycles=2))):
             target = self.root / ('run-%d' % index)
             command = self._worker_script(summary, self._journal('x', cycles=2),
                                           target=target)
@@ -228,7 +257,7 @@ class BoundedReadTests(TestCase):
         status, checks, failures = verify_completion(
             run_id='run', cycles=3, getter_budget=10,
             child=self._summary('run', status='PASS', transport_started=False,
-                                getter_calls=0),
+                                getter_calls=0, completed_observation_cycles=0),
             journal=[{'event': 'run_started', 'run_id': 'run'}],
             cleanup_state='CLEAN')
         self.assertEqual(status, 'FAILED')

@@ -273,7 +273,10 @@ class LiveSessionRecoveryTests(TestCase):
                          and result['broker_read_cleanup'].get('running'))
         self.assertNotIn('READ_ONLY_BROKER_READ_IN_FLIGHT_NO_CLOSE_PROOF',
                          result.get('stop_disposition',''))
-        self.assertTrue(result['bounded_capture_completed'])
+        # The read finished during shutdown, not inside a cycle: it must be
+        # retained as evidence but never counted as a completed observation.
+        self.assertFalse(result['bounded_capture_completed'])
+        self.assertEqual(result['completed_observation_cycles'], 0)
         self.assertFalse(result.get('read_only_capture_healthy'))
 
     def test_session_shutdown_reaps_actual_market_read_child_without_broker_writes(self):

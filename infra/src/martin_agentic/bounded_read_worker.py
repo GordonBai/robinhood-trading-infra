@@ -27,6 +27,7 @@ from .transport import TransportError
 
 MAX_CYCLES = 3
 MAX_GETTERS = 120
+OBSERVATION_WAIT_SECONDS = 12.0
 
 
 def _now():
@@ -119,6 +120,8 @@ def _completion_failures(result, *, cycles, getter_calls, budget, sealed):
         failures.append('COMPLETED_CYCLES_MISMATCH')
     if result.get('bounded_capture_completed') is not True:
         failures.append('BOUNDED_CAPTURE_NOT_COMPLETED')
+    if result.get('completed_observation_cycles') != cycles:
+        failures.append('COMPLETED_OBSERVATIONS_MISMATCH')
     if result.get('bounded_session_stopped') is not True:
         failures.append('BOUNDED_SESSION_NOT_STOPPED')
     if result.get('current_observation_healthy') is not True:
@@ -208,8 +211,7 @@ def main(argv=None):
             # A cycle completed only if it reached an observation and recorded
             # no error. Capture-only health additionally gates the final PASS,
             # but an unhealthy read must not be journaled as completed either.
-            completed = bool(result.get('observed_at')
-                             and not result.get('errors'))
+            completed = result.get('cycle_observation_completed') is True
             _append(state, {'event': 'cycle', 'run_id': args.run_id,
                             'cycle': event['cycle'],
                             'configured_cycles': args.cycles,
@@ -217,6 +219,8 @@ def main(argv=None):
                             'observed_at': result.get('observed_at'),
                             'last_completed_observation_at':
                                 result.get('last_completed_observation_at'),
+                            'cycle_market_state': result.get('cycle_market_state'),
+                            'cycle_market_consumed': result.get('cycle_market_consumed'),
                             'errors': len(result.get('errors') or []),
                             'fatal': event.get('fatal'),
                             'getter_calls': state['count'],
@@ -233,7 +237,8 @@ def main(argv=None):
             status_file=str(target / 'status.json'),
             source_mode='real_read_only', until_close=False,
             budget_entry_limit=0, budget_total_limit=0,
-            cycle_observer=observe)
+            cycle_observer=observe,
+            observation_wait_seconds=OBSERVATION_WAIT_SECONDS)
         failures = _completion_failures(
             result, cycles=args.cycles, getter_calls=state['count'],
             budget=args.getter_budget, sealed=sealed)
@@ -241,6 +246,7 @@ def main(argv=None):
             status='PASS' if not failures else 'FAILED',
             completed_cycles=(result.get('cycle')
                               if isinstance(result.get('cycle'), int) else 0),
+            completed_observation_cycles=result.get('completed_observation_cycles'),
             bounded_capture_completed=result.get('bounded_capture_completed'),
             bounded_session_stopped=result.get('bounded_session_stopped'),
             current_observation_healthy=result.get('current_observation_healthy'),

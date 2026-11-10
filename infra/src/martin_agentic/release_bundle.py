@@ -73,12 +73,17 @@ def _forbidden_name(name):
             or base.endswith(('.pem','.key','.p12','.pfx')))
 
 
+PUBLIC_ROOT_FILES = (
+    'README.md', 'README.zh-CN.md', 'LICENSE', 'CONTRIBUTING.md',
+    '.github/PULL_REQUEST_TEMPLATE.md')
+
+
 def _allowed(name):
     if _forbidden_name(name):
         return False
-    return (name in {'pyproject.toml','uv.lock','README.md',CONTRACT_FIXTURE,
+    return (name in {'pyproject.toml','uv.lock',CONTRACT_FIXTURE,
                      'reports/community_tool_contract_evidence.json',
-                     *PUBLIC_SCRIPTS}
+                     *PUBLIC_ROOT_FILES, *PUBLIC_SCRIPTS}
         or name.startswith(('infra/src/martin_agentic/','infra/src/trading_contracts/',
             'infra/src/trading_infra/','strategy/martin_luk/src/',
             'strategy/examples/src/','tests/','config/',
@@ -124,7 +129,12 @@ def _files(root):
     extra.update(p for p in (root/'examples').rglob('*') if p.is_file() and p.suffix in {'.json','.md'})
     report_fixture=root/'reports/community_tool_contract_evidence.json'
     if report_fixture.is_file():extra.add(report_fixture)
-    if (root/'README.md').exists():extra.add(root/'README.md')
+    # Public repository root files are included by exact path only; never add
+    # the whole root or the whole .github directory.
+    for relative in PUBLIC_ROOT_FILES:
+        path = root / relative
+        if path.is_file():
+            extra.add(path)
     paths=sorted((qualified|extra), key=lambda p: p.relative_to(root).as_posix())
     if len(paths)>MAX_FILES:raise ValueError('RELEASE_TOO_MANY_FILES')
     payloads={};rows=[];total=0

@@ -23,7 +23,10 @@ class ReleaseBundleTests(TestCase):
                 'examples/input.json':'{"synthetic":true}',
                 'reports/community_tool_contract_evidence.json':'{"tools":[]}',
                 'runtime/do-not-package.sqlite':'private','reports/private.json':'private',
-                '.env':'secret','README.md':'Test bundle\n',
+                '.env':'secret','README.md':'Test bundle\n','README.zh-CN.md':'Test bundle zh\n',
+                'LICENSE':'MIT License\n','CONTRIBUTING.md':'Contributing\n',
+                '.github/PULL_REQUEST_TEMPLATE.md':'PR template\n',
+                '.github/private-extra.md':'not packaged\n','notes.txt':'not packaged\n',
                 'tests/fixtures/legacy-artifact-579e/manifest.json':'{"source_fingerprint":"'+'a'*64+'"}\n',
                 'tests/fixtures/robinhood_historicals_before_first_bar.json':'{"data":[],"error":"synthetic"}\n',
                 'tests/fixtures/formal-tool-contract.json':'{"synthetic":true,"historical":true,"tools":[]}\n',
@@ -60,6 +63,10 @@ class ReleaseBundleTests(TestCase):
         self.assertIn('tests/fixtures/legacy-artifact-579e/manifest.json',names)
         self.assertIn('tests/fixtures/robinhood_historicals_before_first_bar.json',names)
         self.assertIn('tests/fixtures/formal-tool-contract.json',names)
+        self.assertIn('LICENSE',names);self.assertIn('README.zh-CN.md',names)
+        self.assertIn('CONTRIBUTING.md',names)
+        self.assertIn('.github/PULL_REQUEST_TEMPLATE.md',names)
+        self.assertNotIn('.github/private-extra.md',names);self.assertNotIn('notes.txt',names)
         self.assertNotIn('runtime/do-not-package.sqlite',names);self.assertNotIn('.env',names)
         self.assertNotIn('reports/private.json',names)
         extracted=Path(self.tmp.name)/'extracted'
@@ -67,6 +74,18 @@ class ReleaseBundleTests(TestCase):
         self.assertEqual(source_fingerprint(extracted),source_fingerprint(self.root))
         self.assertEqual((extracted/'examples/input.json').read_text(),'{"synthetic":true}')
         self.assertFalse(verified['tests_executed']);self.assertFalse(verified['production_ready'])
+
+    def test_public_root_allowlist_is_exact_not_whole_root_or_github(self):
+        from martin_agentic.release_bundle import PUBLIC_ROOT_FILES
+        self.assertEqual(set(PUBLIC_ROOT_FILES), {
+            'README.md', 'README.zh-CN.md', 'LICENSE', 'CONTRIBUTING.md',
+            '.github/PULL_REQUEST_TEMPLATE.md'})
+        self.build()
+        names={r['path'] for r in self.manifest()['files']}
+        self.assertTrue(set(PUBLIC_ROOT_FILES) <= names)
+        self.assertNotIn('.github/private-extra.md',names)
+        self.assertNotIn('notes.txt',names)
+        self.assertNotIn('.env',names)
 
     def test_fixture_change_changes_bundle_identity_even_when_qualified_source_is_unchanged(self):
         first=self.build();build=source_fingerprint(self.root)

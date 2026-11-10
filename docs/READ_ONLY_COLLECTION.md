@@ -34,9 +34,13 @@ reused for a later run.
 
 ## Execute (only after explicit approval)
 
-Add `--execute` and `--symbols` only in a separately approved window. The child
-uses the existing real read-only session path (`run_live_session` with
-`capture_only`, disabled agent mode). This task does not run it.
+Add `--execute` and `--symbols` only in a separately approved window. Execute
+also requires the policy's `current_capture` mapping with non-empty `root` and
+`public_manifest`; its preflight rejects a missing bridge before any target
+claim, auth or getter. The default public preflight remains usable with the
+synthetic policy, which is not an execute configuration. The child uses the
+existing real read-only session path (`run_live_session` with `capture_only`,
+disabled agent mode). This page does not run it.
 
 ```sh
 martin-agentic bounded-read ... --symbols DEMO --execute
